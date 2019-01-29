@@ -28,9 +28,11 @@ func TestValidateManifest(t *testing.T) {
 		m Manifest
 		returnsError bool
 	}{
+		{Manifest{}, true},
 		{Manifest{Invoker: "docker"}, true},
-		{Manifest{Invoker: "binary"}, true},
-		{Manifest{Invoker: "binary", Path: "somepath"}, false},
+		{Manifest{Command: ["a", "b"], Invoker: "docker"}, true},
+		{Manifest{Command: ["a", "b"], Invoker: "binary"}, true},
+		{Manifest{Command: ["a", "b"], Invoker: "binary", Path: "somepath"}, false},
 	}
 
 	for _, test := range tests {

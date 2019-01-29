@@ -9,8 +9,9 @@ import (
 
 // A Manifest describes a plugin information.
 type Manifest struct {
-	Invoker string `json:"invoker"`
-	Path    string `json:"path"`
+	Invoker string   `json:"invoker"`
+	Path    string   `json:"path"`
+	Command []string `json:"command"`
 }
 
 // LoadManifest reads the file found at the given path and decodes it into a manifest.
@@ -32,6 +33,10 @@ func LoadManifest(path string) (*Manifest, error) {
 }
 
 func validateManifest(m *Manifest) error {
+	if len(m.Command) == 0 {
+		return errors.New("missing 'command' field in manifest file")
+	}
+
 	switch m.Invoker {
 	case "executable":
 		if len(m.Path) == 0 {
@@ -40,6 +45,6 @@ func validateManifest(m *Manifest) error {
 	case "docker":
 		return errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
 	default:
-		return errors.Errorf("unsupported invoker '%s', only 'binary' and 'docker' are currently supported", m.Invoker)
+		return errors.Errorf("unsupported invoker '%s', only 'binary' is currently supported", m.Invoker)
 	}
 }
