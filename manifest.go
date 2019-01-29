@@ -24,5 +24,20 @@ func LoadManifest(path string) (*Manifest, error) {
 
 	var m Manifest
 	err = json.NewDecoder(f).Decode(&m)
-	return &m, errors.Wrap(err, "unable to decode manifest content")
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode manifest content")
+	}
+
+	switch m.Invoker {
+	case "executable":
+		if len(m.Path) == 0 {
+			return nil, errors.Errorf("missing 'path' field in manifest file for invoker 'executable'")
+		}
+	case "docker":
+		return nil, errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
+	default:
+		return nil, errors.Errorf("unsupported invoker '%s', only 'binary' and 'docker' are currently supported", m.Invoker)
+	}
+
+	return &m, nil
 }
