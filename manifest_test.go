@@ -21,3 +21,20 @@ func TestLoadManifest(t *testing.T) {
 	require.Equal(t, "binary", m.Invoker)
 	require.Equal(t, "some-path", m.Path)
 }
+
+
+func TestValidateManifest(t *testing.T) {
+	tests := []struct{
+		m Manifest
+		returnsError bool
+	}{
+		{Manifest{Invoker: "docker"}, true},
+		{Manifest{Invoker: "binary"}, true},
+		{Manifest{Invoker: "binary", Path: "somepath"}, false},
+	}
+
+	for _, test := range tests {
+		err := validateManifest(&test.m)
+		require.Equal(t, test.returnsError, err != nil)
+	}
+}

@@ -28,16 +28,18 @@ func LoadManifest(path string) (*Manifest, error) {
 		return nil, errors.Wrap(err, "unable to decode manifest content")
 	}
 
+	return &m, validateManifest(&m)
+}
+
+func validateManifest(m *Manifest) error {
 	switch m.Invoker {
 	case "executable":
 		if len(m.Path) == 0 {
-			return nil, errors.Errorf("missing 'path' field in manifest file for invoker 'executable'")
+			return errors.Errorf("missing 'path' field in manifest file for invoker 'executable'")
 		}
 	case "docker":
-		return nil, errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
+		return errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
 	default:
-		return nil, errors.Errorf("unsupported invoker '%s', only 'binary' and 'docker' are currently supported", m.Invoker)
+		return errors.Errorf("unsupported invoker '%s', only 'binary' and 'docker' are currently supported", m.Invoker)
 	}
-
-	return &m, nil
 }
