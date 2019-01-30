@@ -34,23 +34,31 @@ func TestFindPlugin(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer os.RemoveAll(tmpDir)
+	pluginRoot := GetPluginsDir(tmpDir)
 	paths := []string{
-		filepath.Join(tmpDir, "plugins", "system", "run"),
-		filepath.Join(tmpDir, "plugins", "system", "stop"),
-		filepath.Join(tmpDir, "plugins", "foo"),
+		filepath.Join(pluginRoot, "system", "run"),
+		filepath.Join(pluginRoot, "system", "stop"),
+		filepath.Join(pluginRoot, "foo"),
 	}
 	err = makeManifestPaths(paths)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
-	plugins, err := findPlugins(tmpDir)
-	if err != nil {
-		t.Fatalf(err.Error())
+	assertPlugins := func(t *testing.T, root string, expected []string) {
+		t.Run(root, func(t *testing.T) {
+			plugins, err := findPlugins(root)
+			if err != nil {
+				t.Fatalf(err.Error())
+			}
+			require.ElementsMatch(t, expected, plugins)
+
+		})
 	}
-	expected := []string{}
-	for _, p := range paths {
-		expected = append(expected, filepath.Join(p, "manifest.json"))
-	}
-	require.ElementsMatch(t, expected, plugins)
+
+	assertPlugins(t, pluginRoot, []string{"system", "foo"})
+	assertPlugins(t, filepath.Join(pluginRoot, "system"), []string{"run", "stop"})
+	assertPlugins(t, filepath.Join(pluginRoot, "system", "run"), []string{})
+	assertPlugins(t, filepath.Join(pluginRoot, "system", "stop"), []string{})
+	assertPlugins(t, filepath.Join(pluginRoot, "foo"), []string{})
 }
