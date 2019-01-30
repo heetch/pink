@@ -45,6 +45,8 @@ func validateManifest(m *Manifest) error {
 	case "docker":
 		return errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
 	default:
-		return errors.Errorf("unsupported invoker '%s', only 'binary' is currently supported", m.Invoker)
+		return errors.Errorf("unsupported invoker '%s', only 'executable' is currently supported", m.Invoker)
 	}
+
+	return nil
 }
