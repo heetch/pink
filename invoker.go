@@ -28,7 +28,7 @@ var execCommandContext = exec.CommandContext
 // Invoke an executable described by the given manifest. The configuration can be used to
 // pass args and environment variables to that executable.
 func (e *ExecutableInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerConfig) error {
-	execPath := path.Join(e.PluginDir, path.Join(m.Command...), m.Path)
+	execPath := path.Join(e.PluginDir, path.Join(m.Command...), m.Exec)
 	cmd := execCommandContext(ctx, execPath, cfg.Args...)
 	cmd.Env = append(cmd.Env, cfg.Env...)
 	cmd.Stdout = os.Stdout

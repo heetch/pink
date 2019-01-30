@@ -10,7 +10,7 @@ import (
 // A Manifest describes a plugin information.
 type Manifest struct {
 	Invoker string   `json:"invoker"`
-	Path    string   `json:"path"`
+	Exec    string   `json:"exec"`
 	Command []string `json:"command"`
 }
 
@@ -39,8 +39,8 @@ func validateManifest(m *Manifest) error {
 
 	switch m.Invoker {
 	case "executable":
-		if len(m.Path) == 0 {
-			return errors.Errorf("missing 'path' field in manifest file for invoker 'executable'")
+		if len(m.Exec) == 0 {
+			return errors.Errorf("missing 'exec' field in manifest file for invoker 'executable'")
 		}
 	case "docker":
 		return errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
