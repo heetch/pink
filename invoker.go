@@ -5,6 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
+	"github.com/pkg/errors"
 )
 
 // Invoker invokes a plugin and passes it the given configuration.
@@ -35,4 +40,29 @@ func (e *ExecutableInvoker) Invoke(ctx context.Context, m *Manifest, cfg *Invoke
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
+}
+
+type DockerInvoker struct {
+	Client *client.Client
+}
+
+func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerConfig) error {
+	resp, err := d.Client.ContainerCreate(ctx,
+		&container.Config{
+			Image: m.ImageURL,
+			Cmd:   cfg.Args,
+		}, &container.HostConfig{
+			AutoRemove: true,
+		}, nil, "")
+	if err != nil {
+		return errors.Wrapf(err, "unable to create container '%s'", m.ImageURL)
+	}
+
+	err = d.Client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "unable to run container '%s'", m.ImageURL)
+	}
+
+	_, err = d.Client.ContainerWait(ctx, resp.ID)
+	return errors.Wrapf(err, "an error occurs while running container '%s'", m.ImageURL)
 }
