@@ -13,20 +13,6 @@ func GetPluginsDir(root string) string {
 // findPlugins returns the paths of all manifest.json files of plugins installed below the given root.
 func findPlugins(root string) ([]string, error) {
 	plugins := []string{}
-	// wfn := func(path string, info os.FileInfo, err error) error {
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	if !info.IsDir() && info.Name() == "manifest.json" {
-	// 		plugins = append(plugins, path)
-	// 	}
-	// 	return nil
-	// }
-
-	// err := filepath.Walk(root, wfn)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	nodes, err := ioutil.ReadDir(root)
 	if err != nil {
 		return nil, err
