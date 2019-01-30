@@ -5,10 +5,12 @@ import (
 	"path/filepath"
 )
 
+// getPinkDir returns the default state directory for pink
 func getPinkDir() string {
 	return filepath.Join(os.Getenv("HOME"), ".pink")
 }
 
+// findPlugins returns the paths of all manifest.json files of plugins installed below the given root.
 func findPlugins(root string) ([]string, error) {
 	plugins := []string{}
 	wfn := func(path string, info os.FileInfo, err error) error {

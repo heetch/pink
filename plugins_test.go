@@ -27,6 +27,7 @@ func makeManifestPaths(pluginPaths []string) error {
 	return nil
 }
 
+// findPlugins returns the location of all intalled manifest.json files below a given root.
 func TestFindPlugin(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", ".pink")
 	if err != nil {
