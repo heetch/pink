@@ -9,9 +9,10 @@ import (
 
 // A Manifest describes a plugin information.
 type Manifest struct {
-	Invoker string   `json:"invoker"`
-	Exec    string   `json:"exec"`
-	Command []string `json:"command"`
+	Invoker  string   `json:"invoker"`
+	Exec     string   `json:"exec"`
+	ImageURL string   `json:"image-url"`
+	Command  []string `json:"command"`
 }
 
 // LoadManifest reads the file found at the given path and decodes it into a manifest.
