@@ -44,7 +44,9 @@ func validateManifest(m *Manifest) error {
 			return errors.Errorf("missing 'exec' field in manifest file for invoker 'executable'")
 		}
 	case "docker":
-		return errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
+		if len(m.ImageURL) == 0 {
+			return errors.Errorf("missing 'image-url' field in manifest file for invoker 'docker'")
+		}
 	default:
 		return errors.Errorf("unsupported invoker '%s', only 'executable' is currently supported", m.Invoker)
 	}
