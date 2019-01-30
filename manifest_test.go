@@ -10,16 +10,31 @@ import (
 )
 
 func TestLoadManifest(t *testing.T) {
-	f, err := ioutil.TempFile("", "manifest")
-	require.NoError(t, err)
-	fmt.Fprintf(f, `{"invoker": "executable", "exec": "some-path", "command": ["some-path"]}`)
-	f.Close()
-	defer os.Remove(f.Name())
+	t.Run("Executable", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "manifest")
+		require.NoError(t, err)
+		fmt.Fprintf(f, `{"invoker": "executable", "exec": "some-path", "command": ["some-path"]}`)
+		f.Close()
+		defer os.Remove(f.Name())
 
-	m, err := LoadManifest(f.Name())
-	require.NoError(t, err)
-	require.Equal(t, "executable", m.Invoker)
-	require.Equal(t, "some-path", m.Exec)
+		m, err := LoadManifest(f.Name())
+		require.NoError(t, err)
+		require.Equal(t, "executable", m.Invoker)
+		require.Equal(t, "some-path", m.Exec)
+	})
+
+	t.Run("Docker", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "manifest")
+		require.NoError(t, err)
+		fmt.Fprintf(f, `{"invoker": "docker", "image-url": "some-url", "command": ["some-path"]}`)
+		f.Close()
+		defer os.Remove(f.Name())
+
+		m, err := LoadManifest(f.Name())
+		require.NoError(t, err)
+		require.Equal(t, "docker", m.Invoker)
+		require.Equal(t, "some-url", m.ImageURL)
+	})
 }
 
 func TestValidateManifest(t *testing.T) {
