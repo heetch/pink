@@ -1,11 +1,13 @@
 package pink
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/docker/docker/client"
@@ -89,17 +91,37 @@ func TestExecutableInvoker(t *testing.T) {
 func TestDockerInvoker(t *testing.T) {
 	client, err := client.NewEnvClient()
 	require.NoError(t, err)
+	defer client.Close()
 
-	invoker := DockerInvoker{
-		Client: client,
-	}
+	t.Run("stdout", func(t *testing.T) {
+		var buf bytes.Buffer
+		invoker := NewDockerInvoker(client, &buf, os.Stderr)
 
-	err = invoker.Invoke(
-		context.Background(),
-		&Manifest{ImageURL: "alpine"},
-		&InvokerConfig{
-			Args: []string{"echo", "hello world"},
-		},
-	)
-	require.NoError(t, err)
+		err = invoker.Invoke(
+			context.Background(),
+			&Manifest{ImageURL: "alpine"},
+			&InvokerConfig{
+				Args: []string{"echo", "hello world"},
+			},
+		)
+		require.NoError(t, err)
+
+		require.Equal(t, "hello world", strings.TrimSpace(buf.String()))
+	})
+
+	t.Run("stderr", func(t *testing.T) {
+		var buf bytes.Buffer
+		invoker := NewDockerInvoker(client, os.Stdout, &buf)
+
+		err = invoker.Invoke(
+			context.Background(),
+			&Manifest{ImageURL: "alpine"},
+			&InvokerConfig{
+				Args: []string{"sh", "-c", "echo hello world 1>&2"},
+			},
+		)
+		require.NoError(t, err)
+
+		require.Equal(t, "hello world", strings.TrimSpace(buf.String()))
+	})
 }
