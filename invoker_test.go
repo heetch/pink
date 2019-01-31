@@ -89,6 +89,8 @@ func TestExecutableInvoker(t *testing.T) {
 }
 
 func TestDockerInvoker(t *testing.T) {
+	t.Parallel()
+
 	client, err := client.NewEnvClient()
 	require.NoError(t, err)
 	defer client.Close()
@@ -123,5 +125,20 @@ func TestDockerInvoker(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, "hello world", strings.TrimSpace(buf.String()))
+	})
+
+	t.Run("with tty enabled", func(t *testing.T) {
+		var buf bytes.Buffer
+		invoker := NewDockerInvoker(client, &buf, os.Stderr)
+
+		err = invoker.Invoke(
+			context.Background(),
+			&Manifest{Docker: DockerConfig{ImageURL: "alpine", TTY: true}},
+			&InvokerConfig{
+				Args: []string{"sh", "-c", "echo stdout 1>&2; echo stderr"},
+			},
+		)
+		require.NoError(t, err)
+		require.Equal(t, "stdout\r\nstderr\r\n", buf.String())
 	})
 }

@@ -70,6 +70,7 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 			AttachStdin:  true,
 			AttachStdout: true,
 			AttachStderr: true,
+			Tty:          m.Docker.TTY,
 		}, &container.HostConfig{
 			AutoRemove: true,
 		}, nil, "")
@@ -100,10 +101,20 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 		}
 		defer rd.Close()
 
+		// when TTY is enabled, only stdout is streamed
+		if m.Docker.TTY {
+			_, err = io.Copy(d.stdout, rd)
+			if err != nil && err != io.EOF {
+				fmt.Fprintf(os.Stderr, "%s", errors.Wrap(err, "an error occured while consuming container log stream"))
+			}
+
+			return
+		}
+
+		// when TTY is disabled, stdout and stderr are multiplexed
 		_, err = stdcopy.StdCopy(d.stdout, d.stderr, rd)
 		if err != nil && err != io.EOF {
 			fmt.Fprintf(os.Stderr, "%s", errors.Wrap(err, "an error occured while consuming container log stream"))
-			return
 		}
 	}()
 
