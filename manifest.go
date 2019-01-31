@@ -9,9 +9,16 @@ import (
 
 // A Manifest describes a plugin information.
 type Manifest struct {
-	Invoker string   `json:"invoker"`
-	Exec    string   `json:"exec"`
-	Command []string `json:"command"`
+	Invoker string       `json:"invoker"`
+	Exec    string       `json:"exec"`
+	Docker  DockerConfig `json:"docker"`
+	Command []string     `json:"command"`
+}
+
+// DockerConfig contains options for customizing the docker invoker.
+type DockerConfig struct {
+	ImageURL string `json:"image-url"`
+	TTY      bool   `json:"bool"`
 }
 
 // LoadManifest reads the file found at the given path and decodes it into a manifest.
@@ -43,7 +50,9 @@ func validateManifest(m *Manifest) error {
 			return errors.Errorf("missing 'exec' field in manifest file for invoker 'executable'")
 		}
 	case "docker":
-		return errors.Errorf("invoker 'docker' is not yet supported, stay tuned")
+		if len(m.Docker.ImageURL) == 0 {
+			return errors.Errorf("missing 'docker.image-url' field in manifest file for invoker 'docker'")
+		}
 	default:
 		return errors.Errorf("unsupported invoker '%s', only 'executable' is currently supported", m.Invoker)
 	}

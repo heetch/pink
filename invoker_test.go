@@ -1,13 +1,16 @@
 package pink
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"testing"
 
+	"github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,4 +86,59 @@ func TestExecutableInvoker(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
+}
+
+func TestDockerInvoker(t *testing.T) {
+	t.Parallel()
+
+	client, err := client.NewEnvClient()
+	require.NoError(t, err)
+	defer client.Close()
+
+	t.Run("stdout", func(t *testing.T) {
+		var buf bytes.Buffer
+		invoker := NewDockerInvoker(client, &buf, os.Stderr)
+
+		err = invoker.Invoke(
+			context.Background(),
+			&Manifest{Docker: DockerConfig{ImageURL: "alpine"}},
+			&InvokerConfig{
+				Args: []string{"echo", "hello world"},
+			},
+		)
+		require.NoError(t, err)
+
+		require.Equal(t, "hello world", strings.TrimSpace(buf.String()))
+	})
+
+	t.Run("stderr", func(t *testing.T) {
+		var buf bytes.Buffer
+		invoker := NewDockerInvoker(client, os.Stdout, &buf)
+
+		err = invoker.Invoke(
+			context.Background(),
+			&Manifest{Docker: DockerConfig{ImageURL: "alpine"}},
+			&InvokerConfig{
+				Args: []string{"sh", "-c", "echo hello world 1>&2"},
+			},
+		)
+		require.NoError(t, err)
+
+		require.Equal(t, "hello world", strings.TrimSpace(buf.String()))
+	})
+
+	t.Run("with tty enabled", func(t *testing.T) {
+		var buf bytes.Buffer
+		invoker := NewDockerInvoker(client, &buf, os.Stderr)
+
+		err = invoker.Invoke(
+			context.Background(),
+			&Manifest{Docker: DockerConfig{ImageURL: "alpine", TTY: true}},
+			&InvokerConfig{
+				Args: []string{"sh", "-c", "echo stdout 1>&2; echo stderr"},
+			},
+		)
+		require.NoError(t, err)
+		require.Equal(t, "stdout\r\nstderr\r\n", buf.String())
+	})
 }
