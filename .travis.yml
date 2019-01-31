@@ -1,0 +1,13 @@
+sudo: required
+
+language: go
+
+services:
+  - docker
+
+go:
+  - '1.11'
+  - tip
+
+script:
+  - go test -v -race -cover -timeout=1m ./...
