@@ -119,5 +119,5 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 	}()
 
 	_, err = d.Client.ContainerWait(ctx, resp.ID)
-	return errors.Wrapf(err, "an error occurs while running container '%s'", m.Docker.ImageURL)
+	return errors.Wrapf(err, "an error occured while running container '%s'", m.Docker.ImageURL)
 }
