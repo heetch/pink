@@ -26,14 +26,14 @@ func TestLoadManifest(t *testing.T) {
 	t.Run("Docker", func(t *testing.T) {
 		f, err := ioutil.TempFile("", "manifest")
 		require.NoError(t, err)
-		fmt.Fprintf(f, `{"invoker": "docker", "image-url": "some-url", "command": ["some-path"]}`)
+		fmt.Fprintf(f, `{"invoker": "docker", "docker": {"image-url": "some-url", "tty": true}, "command": ["some-path"]}`)
 		f.Close()
 		defer os.Remove(f.Name())
 
 		m, err := LoadManifest(f.Name())
 		require.NoError(t, err)
 		require.Equal(t, "docker", m.Invoker)
-		require.Equal(t, "some-url", m.ImageURL)
+		require.Equal(t, "some-url", m.Docker.ImageURL)
 	})
 }
 

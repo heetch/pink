@@ -99,7 +99,7 @@ func TestDockerInvoker(t *testing.T) {
 
 		err = invoker.Invoke(
 			context.Background(),
-			&Manifest{ImageURL: "alpine"},
+			&Manifest{Docker: DockerConfig{ImageURL: "alpine"}},
 			&InvokerConfig{
 				Args: []string{"echo", "hello world"},
 			},
@@ -115,7 +115,7 @@ func TestDockerInvoker(t *testing.T) {
 
 		err = invoker.Invoke(
 			context.Background(),
-			&Manifest{ImageURL: "alpine"},
+			&Manifest{Docker: DockerConfig{ImageURL: "alpine"}},
 			&InvokerConfig{
 				Args: []string{"sh", "-c", "echo hello world 1>&2"},
 			},

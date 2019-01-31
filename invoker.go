@@ -65,7 +65,7 @@ func NewDockerInvoker(client *client.Client, stdout, stderr io.Writer) *DockerIn
 func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerConfig) error {
 	resp, err := d.Client.ContainerCreate(ctx,
 		&container.Config{
-			Image:        m.ImageURL,
+			Image:        m.Docker.ImageURL,
 			Cmd:          cfg.Args,
 			AttachStdin:  true,
 			AttachStdout: true,
@@ -74,12 +74,12 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 			AutoRemove: true,
 		}, nil, "")
 	if err != nil {
-		return errors.Wrapf(err, "unable to create container '%s'", m.ImageURL)
+		return errors.Wrapf(err, "unable to create container '%s'", m.Docker.ImageURL)
 	}
 
 	err = d.Client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return errors.Wrapf(err, "unable to run container '%s'", m.ImageURL)
+		return errors.Wrapf(err, "unable to run container '%s'", m.Docker.ImageURL)
 	}
 
 	var wg sync.WaitGroup
@@ -95,7 +95,7 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 			Follow:     true,
 		})
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", errors.Wrapf(err, "unable to run stream container logs for image '%s'", m.ImageURL))
+			fmt.Fprintf(os.Stderr, "%s", errors.Wrapf(err, "unable to run stream container logs for image '%s'", m.Docker.ImageURL))
 			return
 		}
 		defer rd.Close()
@@ -108,5 +108,5 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 	}()
 
 	_, err = d.Client.ContainerWait(ctx, resp.ID)
-	return errors.Wrapf(err, "an error occurs while running container '%s'", m.ImageURL)
+	return errors.Wrapf(err, "an error occurs while running container '%s'", m.Docker.ImageURL)
 }
