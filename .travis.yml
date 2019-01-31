@@ -9,7 +9,8 @@ go:
   - '1.11'
   - tip
 
-install: true
+install:
+  - docker pull alpine
 
 script:
   - GO111MODULE=on go test -v -race -cover -timeout=1m ./...
