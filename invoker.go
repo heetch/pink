@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/pkg/errors"
 )
 
@@ -47,7 +48,17 @@ func (e *ExecutableInvoker) Invoke(ctx context.Context, m *Manifest, cfg *Invoke
 
 // DockerInvoker invokes a plugin as a docker container.
 type DockerInvoker struct {
-	Client *client.Client
+	Client         *client.Client
+	stdout, stderr io.Writer
+}
+
+// NewDockerInvoker creates a configured DockerInvoker.
+func NewDockerInvoker(client *client.Client, stdout, stderr io.Writer) *DockerInvoker {
+	return &DockerInvoker{
+		Client: client,
+		stdout: stdout,
+		stderr: stderr,
+	}
 }
 
 // Invoke the docker container based on the given manifest and config.
@@ -56,7 +67,6 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 		&container.Config{
 			Image:        m.ImageURL,
 			Cmd:          cfg.Args,
-			Tty:          true,
 			AttachStdin:  true,
 			AttachStdout: true,
 			AttachStderr: true,
@@ -81,22 +91,6 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 
 		rd, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
 			ShowStdout: true,
-			Follow:     true,
-		})
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", errors.Wrapf(err, "unable to run stream container logs for image '%s'", m.ImageURL))
-			return
-		}
-		defer rd.Close()
-
-		io.Copy(os.Stdout, rd)
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		rd, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
 			ShowStderr: true,
 			Follow:     true,
 		})
@@ -106,7 +100,11 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 		}
 		defer rd.Close()
 
-		io.Copy(os.Stderr, rd)
+		_, err = stdcopy.StdCopy(d.stdout, d.stderr, rd)
+		if err != nil && err != io.EOF {
+			fmt.Fprintf(os.Stderr, "%s", errors.Wrap(err, "an error occured while consuming container log stream"))
+			return
+		}
 	}()
 
 	_, err = d.Client.ContainerWait(ctx, resp.ID)
