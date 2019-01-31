@@ -2,10 +2,12 @@ package pink
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path"
+	"sync"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -70,18 +72,41 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 		return errors.Wrapf(err, "unable to run container '%s'", m.ImageURL)
 	}
 
-	rd, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
-		ShowStderr: true,
-		ShowStdout: true,
-		Follow:     true,
-	})
-	if err != nil {
-		return errors.Wrapf(err, "unable to run stream container logs for '%s'", m.ImageURL)
-	}
-	defer rd.Close()
+	var wg sync.WaitGroup
+	defer wg.Wait()
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
+		rd, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
+			ShowStdout: true,
+			Follow:     true,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s", errors.Wrapf(err, "unable to run stream container logs for image '%s'", m.ImageURL))
+			return
+		}
+		defer rd.Close()
+
 		io.Copy(os.Stdout, rd)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		rd, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
+			ShowStderr: true,
+			Follow:     true,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s", errors.Wrapf(err, "unable to run stream container logs for image '%s'", m.ImageURL))
+			return
+		}
+		defer rd.Close()
+
+		io.Copy(os.Stderr, rd)
 	}()
 
 	_, err = d.Client.ContainerWait(ctx, resp.ID)
