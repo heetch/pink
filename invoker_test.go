@@ -8,6 +8,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/docker/docker/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -80,6 +81,24 @@ func TestExecutableInvoker(t *testing.T) {
 		&InvokerConfig{
 			Args: []string{"--some-flag", "some-arg"},
 			Env:  []string{"A=C", "G=T"},
+		},
+	)
+	require.NoError(t, err)
+}
+
+func TestDockerInvoker(t *testing.T) {
+	client, err := client.NewEnvClient()
+	require.NoError(t, err)
+
+	invoker := DockerInvoker{
+		Client: client,
+	}
+
+	err = invoker.Invoke(
+		context.Background(),
+		&Manifest{ImageURL: "alpine"},
+		&InvokerConfig{
+			Args: []string{"echo", "hello world"},
 		},
 	)
 	require.NoError(t, err)

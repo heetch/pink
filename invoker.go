@@ -2,6 +2,7 @@ package pink
 
 import (
 	"context"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -42,15 +43,21 @@ func (e *ExecutableInvoker) Invoke(ctx context.Context, m *Manifest, cfg *Invoke
 	return cmd.Run()
 }
 
+// DockerInvoker invokes a plugin as a docker container.
 type DockerInvoker struct {
 	Client *client.Client
 }
 
+// Invoke the docker container based on the given manifest and config.
 func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerConfig) error {
 	resp, err := d.Client.ContainerCreate(ctx,
 		&container.Config{
-			Image: m.ImageURL,
-			Cmd:   cfg.Args,
+			Image:        m.ImageURL,
+			Cmd:          cfg.Args,
+			Tty:          true,
+			AttachStdin:  true,
+			AttachStdout: true,
+			AttachStderr: true,
 		}, &container.HostConfig{
 			AutoRemove: true,
 		}, nil, "")
@@ -62,6 +69,20 @@ func (d *DockerInvoker) Invoke(ctx context.Context, m *Manifest, cfg *InvokerCon
 	if err != nil {
 		return errors.Wrapf(err, "unable to run container '%s'", m.ImageURL)
 	}
+
+	rd, err := d.Client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
+		ShowStderr: true,
+		ShowStdout: true,
+		Follow:     true,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "unable to run stream container logs for '%s'", m.ImageURL)
+	}
+	defer rd.Close()
+
+	go func() {
+		io.Copy(os.Stdout, rd)
+	}()
 
 	_, err = d.Client.ContainerWait(ctx, resp.ID)
 	return errors.Wrapf(err, "an error occurs while running container '%s'", m.ImageURL)
