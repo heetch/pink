@@ -44,20 +44,24 @@ func isInvokable(path string) (bool, error) {
 	return foundManifest, nil
 }
 
-// dispatchCommand finds the manifest for the correct command
-func dispatchCommand(args []string, path []string, root string) (string, []string, error) {
+// dispatchCommand finds the manifest for the correct command, or instructs us to run "help".  If neither case is appropriate, an error is returned.
+func dispatchCommand(args []string, path []string, root string) (string, []string, bool, error) {
 	subpath := filepath.Join(path...)
 	fullPath := filepath.Join(root, subpath)
 	inv, err := isInvokable(fullPath)
 	if err != nil {
 		pErr, ok := err.(*os.PathError)
 		if ok && pErr.Err == syscall.ENOENT {
-			return "", nil, fmt.Errorf("No plug-in called %q is installed", strings.Join(path, " "))
+			return "", nil, false, fmt.Errorf("No plug-in called %q is installed", strings.Join(path, " "))
 		}
-		return "", nil, err
+		return "", nil, false, err
 	}
 	if inv {
-		return filepath.Join(fullPath, "manifest.json"), args, nil
+		return filepath.Join(fullPath, "manifest.json"), args, false, nil
+	}
+	// We've hit the end of the args without finding a manifest, we should run help!
+	if len(args) == 0 || args[0] == "-h" {
+		return fullPath, args, true, nil
 	}
 	path = append(path, args[0])
 	return dispatchCommand(args[1:], path, root)

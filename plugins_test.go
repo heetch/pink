@@ -94,6 +94,7 @@ func TestDispatchCommand(t *testing.T) {
 		err      string
 		manifest string
 		outArgs  []string
+		runHelp  bool
 	}{
 		{
 			name:     "Tier 1 manifest, with zero args",
@@ -124,18 +125,33 @@ func TestDispatchCommand(t *testing.T) {
 			inArgs: []string{"system", "ding-dong", "--name", "Leslie Phillips"},
 			err:    `No plug-in called "system ding-dong" is installed`,
 		},
+		{
+			name:    "Tier-1 with no manifest (run help)",
+			inArgs:  []string{"system"},
+			runHelp: true,
+		},
+		{
+			name:    "Tier-1, explicitly run help",
+			inArgs:  []string{"system", "-h"},
+			runHelp: true,
+		},
 	}
 
 	tearDown, pluginRoot := setUp(t)
 	defer tearDown()
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			manifest, args, err := dispatchCommand(c.inArgs, []string{}, pluginRoot)
+			manifest, args, runHelp, err := dispatchCommand(c.inArgs, []string{}, pluginRoot)
 			if c.err != "" {
 				require.EqualError(t, err, c.err)
 				return
 			}
 			require.NoError(t, err)
+			if c.runHelp {
+				require.True(t, runHelp)
+				return
+			}
+			require.False(t, runHelp)
 			require.Equal(t, c.outArgs, args)
 			require.Equal(t, filepath.Join(pluginRoot, c.manifest), manifest)
 		})
