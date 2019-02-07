@@ -1,6 +1,7 @@
 package pink
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -23,4 +24,35 @@ func findPlugins(root string) ([]string, error) {
 		}
 	}
 	return plugins, nil
+}
+
+func isInvokable(path string) (bool, error) {
+	nodes, err := ioutil.ReadDir(path)
+	if err != nil {
+		return false, err
+	}
+	foundManifest := false
+	for _, n := range nodes {
+		if !n.IsDir() && n.Name() == "manifest.json" {
+			foundManifest = true
+			break
+		}
+	}
+	return foundManifest, nil
+}
+
+// dispatchCommand finds the manifest for the correct command
+func dispatchCommand(args []string, path []string, root string) (string, []string, error) {
+	subpath := filepath.Join(path...)
+	fullPath := filepath.Join(root, subpath)
+	inv, err := isInvokable(fullPath)
+	if err != nil {
+		return "", nil, err
+	}
+	if inv {
+		fmt.Printf("Invoking %+v with %+v", path, args)
+		return filepath.Join(fullPath, "manifest.json"), args, nil
+	}
+	path = append(path, args[0])
+	return dispatchCommand(args[1:], path, root)
 }
