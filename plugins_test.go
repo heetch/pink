@@ -86,7 +86,7 @@ func TestIsInvokable(t *testing.T) {
 	require.False(t, inv)
 }
 
-// dispatchCommand finds the appropriate plugins and passes it the right portion of the arguments
+// DispatchCommand finds the appropriate plugins and passes it the right portion of the arguments
 func TestDispatchCommand(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -141,7 +141,7 @@ func TestDispatchCommand(t *testing.T) {
 	defer tearDown()
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			manifest, args, runHelp, err := dispatchCommand(c.inArgs, []string{}, pluginRoot)
+			manifest, args, runHelp, err := DispatchCommand(c.inArgs, []string{}, pluginRoot)
 			if c.err != "" {
 				require.EqualError(t, err, c.err)
 				return
