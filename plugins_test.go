@@ -96,10 +96,33 @@ func TestDispatchCommand(t *testing.T) {
 		outArgs  []string
 	}{
 		{
+			name:     "Tier 1 manifest, with zero args",
+			inArgs:   []string{"foo"},
+			manifest: "foo/manifest.json",
+			outArgs:  []string{},
+		},
+		{
+			name:     "Tier 1 manifest, with multiple args",
+			inArgs:   []string{"foo", "-v", "-f", "Bernard", "-n", "Cribbins"},
+			manifest: "foo/manifest.json",
+			outArgs:  []string{"-v", "-f", "Bernard", "-n", "Cribbins"},
+		},
+
+		{
 			name:     "Tier 2 manifest, with single arg",
 			inArgs:   []string{"system", "run", "postgres"},
 			manifest: "system/run/manifest.json",
 			outArgs:  []string{"postgres"},
+		},
+		{
+			name:   "Non-existant Tier-1 manifest",
+			inArgs: []string{"rather", "--name", "Terry Thomas"},
+			err:    `No plug-in called "rather" is installed`,
+		},
+		{
+			name:   "Non-existant Tier-2 manifest",
+			inArgs: []string{"system", "ding-dong", "--name", "Leslie Phillips"},
+			err:    `No plug-in called "system ding-dong" is installed`,
 		},
 	}
 

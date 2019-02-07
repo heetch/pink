@@ -3,7 +3,10 @@ package pink
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strings"
+	"syscall"
 )
 
 // GetPluginsDir returns the default root of the plugins tree below a given root
@@ -47,10 +50,13 @@ func dispatchCommand(args []string, path []string, root string) (string, []strin
 	fullPath := filepath.Join(root, subpath)
 	inv, err := isInvokable(fullPath)
 	if err != nil {
+		pErr, ok := err.(*os.PathError)
+		if ok && pErr.Err == syscall.ENOENT {
+			return "", nil, fmt.Errorf("No plug-in called %q is installed", strings.Join(path, " "))
+		}
 		return "", nil, err
 	}
 	if inv {
-		fmt.Printf("Invoking %+v with %+v", path, args)
 		return filepath.Join(fullPath, "manifest.json"), args, nil
 	}
 	path = append(path, args[0])
