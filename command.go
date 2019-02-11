@@ -1,6 +1,9 @@
 package pink
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 // Help will list the plugins installed below a given root
 func Help(root string) {
@@ -16,4 +19,12 @@ func Help(root string) {
 	for _, p := range plugins {
 		fmt.Printf("\t%s\n", p)
 	}
+}
+
+func RunFromManifest(pluginD, path string, args []string) error {
+	manifest, err := LoadManifest(path)
+	if err != nil {
+		return err
+	}
+	return manifest.Invoke(context.Background(), pluginD, args)
 }
