@@ -80,25 +80,27 @@ func TestInvoke(t *testing.T) {
 
 	})
 
-	tmpDir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	tmpPath := filepath.Join(tmpDir, "stdout")
-	tmpFile, err := os.Create(tmpPath)
-	require.NoError(t, err)
-	origStdout := os.Stdout
-	os.Stdout = tmpFile
-	defer func() { os.Stdout = origStdout }()
+	t.Run("docker", func(t *testing.T) {
+		tmpDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		tmpPath := filepath.Join(tmpDir, "stdout")
+		tmpFile, err := os.Create(tmpPath)
+		require.NoError(t, err)
+		origStdout := os.Stdout
+		os.Stdout = tmpFile
+		defer func() { os.Stdout = origStdout }()
 
-	m := Manifest{Invoker: "docker", Docker: DockerConfig{ImageURL: "alpine"}}
-	err = m.Invoke(context.Background(), wd, []string{"echo", "hello", "world"})
-	require.NoError(t, err)
+		m := Manifest{Invoker: "docker", Docker: DockerConfig{ImageURL: "alpine"}}
+		err = m.Invoke(context.Background(), wd, []string{"echo", "hello", "world"})
+		require.NoError(t, err)
 
-	tmpFile.Sync()
-	tmpFile.Close()
+		tmpFile.Sync()
+		tmpFile.Close()
 
-	b, err := ioutil.ReadFile(tmpPath)
-	require.NoError(t, err)
+		b, err := ioutil.ReadFile(tmpPath)
+		require.NoError(t, err)
 
-	require.Equal(t, "hello world", strings.TrimSpace(string(b)))
+		require.Equal(t, "hello world", strings.TrimSpace(string(b)))
+	})
 
 }
