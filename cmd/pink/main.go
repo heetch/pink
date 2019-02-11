@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -42,5 +41,9 @@ func main() {
 		pink.Help(path)
 		return
 	}
-	fmt.Printf("%q - %q\n", path, args)
+	err = pink.RunFromManifest(plugD, path, args)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	return
 }
