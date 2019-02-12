@@ -44,7 +44,7 @@ func isInvokable(path string) (bool, error) {
 	return foundManifest, nil
 }
 
-// dispatchCommand finds the manifest for the correct command, or instructs us to run "help".  If neither case is appropriate, an error is returned.
+// DispatchCommand finds the manifest for the correct command, or instructs us to run "help".  If neither case is appropriate, an error is returned.
 func DispatchCommand(args []string, path []string, root string) (string, []string, bool, error) {
 	subpath := filepath.Join(path...)
 	fullPath := filepath.Join(root, subpath)
