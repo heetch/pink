@@ -44,7 +44,6 @@ func setUp(t *testing.T) (func(), string) {
 		t.Fatalf(err.Error())
 	}
 	return cleanUp, pluginRoot
-
 }
 
 // findPlugins returns the location of all intalled manifest.json files below a given root.
