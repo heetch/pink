@@ -21,6 +21,8 @@ func Help(root string) {
 	}
 }
 
+// RunFromManifest reads a plugins manifest and then invokes it in
+// line with the content of that manifest.
 func RunFromManifest(pluginD, path string, args []string) error {
 	manifest, err := LoadManifest(path)
 	if err != nil {
