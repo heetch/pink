@@ -68,7 +68,7 @@ func TestFindPlugin(t *testing.T) {
 	assertPlugins(t, filepath.Join(pluginRoot, "foo"), []string{})
 }
 
-// IsInvokable indicates the leaves of the command tree
+// IsInvokable indicates the leaves of the command tree.
 func TestIsInvokable(t *testing.T) {
 	tearDown, pluginRoot := setUp(t)
 	defer tearDown()
