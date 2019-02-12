@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-// GetPluginsDir returns the default root of the plugins tree below a given root
+// GetPluginsDir returns the default root of the plugins tree below a given root.
 func GetPluginsDir(root string) string {
 	return filepath.Join(root, "plugins")
 }
