@@ -44,7 +44,6 @@ func setUp(t *testing.T) (func(), string) {
 		t.Fatalf(err.Error())
 	}
 	return cleanUp, pluginRoot
-
 }
 
 // findPlugins returns the location of all intalled manifest.json files below a given root.
@@ -69,7 +68,7 @@ func TestFindPlugin(t *testing.T) {
 	assertPlugins(t, filepath.Join(pluginRoot, "foo"), []string{})
 }
 
-// IsInvokable indicates the leaves of the command tree
+// IsInvokable indicates the leaves of the command tree.
 func TestIsInvokable(t *testing.T) {
 	tearDown, pluginRoot := setUp(t)
 	defer tearDown()
@@ -86,7 +85,7 @@ func TestIsInvokable(t *testing.T) {
 	require.False(t, inv)
 }
 
-// DispatchCommand finds the appropriate plugins and passes it the right portion of the arguments
+// DispatchCommand finds the appropriate plugins and passes it the right portion of the arguments.
 func TestDispatchCommand(t *testing.T) {
 	cases := []struct {
 		name     string
