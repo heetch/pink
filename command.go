@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Help will list the plugins installed below a given root
+// Help will list the plugins installed below a given root.
 func Help(root string) {
 	plugins, err := findPlugins(root)
 	if err != nil {
