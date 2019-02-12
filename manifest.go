@@ -77,7 +77,7 @@ func (m *Manifest) Invoke(ctx context.Context, pluginDir string, args []string) 
 		}
 		inv = NewDockerInvoker(client, os.Stdout, os.Stderr)
 	default:
-		return errors.Errorf("unsupported invoker '%s', only 'executable' is currently supported", m.Invoker)
+		return errors.Errorf("unsupported invoker '%s', only 'executable' and 'docker' are currently supported", m.Invoker)
 	}
 	return inv.Invoke(ctx, m, &InvokerConfig{Args: args, Env: os.Environ()})
 }
