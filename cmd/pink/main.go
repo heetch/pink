@@ -8,7 +8,7 @@ import (
 	"github.com/heetch/pink"
 )
 
-// getPinkDir returns the default state directory for pink
+// getPinkDir returns the default state directory for pink.
 func getPinkDir() string {
 	return filepath.Join(os.Getenv("HOME"), ".pink")
 }
