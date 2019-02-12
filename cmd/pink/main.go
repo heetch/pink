@@ -13,7 +13,7 @@ func getPinkDir() string {
 	return filepath.Join(os.Getenv("HOME"), ".pink")
 }
 
-// ensurePinkDirs will create the local filestructure if it doesn't exist
+// ensurePinkDirs will create the local filestructure if it doesn't exist.
 func ensurePinkDirs(root string) error {
 	return os.MkdirAll(pink.GetPluginsDir(root), 0700)
 
