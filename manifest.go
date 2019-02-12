@@ -62,7 +62,7 @@ func validateManifest(m *Manifest) error {
 	return nil
 }
 
-//
+// Invoke causes the manifests executable, or docker image to be run, as appropriate.
 func (m *Manifest) Invoke(ctx context.Context, pluginDir string, args []string) error {
 	var inv Invoker
 	switch m.Invoker {
