@@ -85,7 +85,7 @@ func TestIsInvokable(t *testing.T) {
 	require.False(t, inv)
 }
 
-// DispatchCommand finds the appropriate plugins and passes it the right portion of the arguments
+// DispatchCommand finds the appropriate plugins and passes it the right portion of the arguments.
 func TestDispatchCommand(t *testing.T) {
 	cases := []struct {
 		name     string
