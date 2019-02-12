@@ -1,9 +1,11 @@
 package pink
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 )
 
@@ -58,4 +60,24 @@ func validateManifest(m *Manifest) error {
 	}
 
 	return nil
+}
+
+// Invoke causes the manifests executable, or docker image to be run, as appropriate.
+func (m *Manifest) Invoke(ctx context.Context, pluginDir string, args []string) error {
+	var inv Invoker
+	switch m.Invoker {
+	case "executable":
+		inv = &ExecutableInvoker{
+			PluginDir: pluginDir,
+		}
+	case "docker":
+		client, err := client.NewEnvClient()
+		if err != nil {
+			return err
+		}
+		inv = NewDockerInvoker(client, os.Stdout, os.Stderr)
+	default:
+		return errors.Errorf("unsupported invoker '%s', only 'executable' and 'docker' are currently supported", m.Invoker)
+	}
+	return inv.Invoke(ctx, m, &InvokerConfig{Args: args, Env: os.Environ()})
 }
