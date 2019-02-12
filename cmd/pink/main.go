@@ -24,7 +24,7 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 	plugD := pink.GetPluginsDir(pd)
-	// If we don't pass any arguments default to running help on
+	// If we don't pass any arguments, default to running help on
 	// the root of the plugins directory
 	if len(os.Args) == 1 {
 		pink.Help(plugD)
